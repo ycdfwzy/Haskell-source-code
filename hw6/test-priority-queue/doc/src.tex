@@ -1,0 +1,126 @@
+%!TEX program = xelatex
+\documentclass[UTF8]{article}
+\usepackage{ctex}
+\usepackage{xfrac}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{fontspec}
+\usepackage[cache=false]{minted}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{Proof}{Proof}
+\newtheorem{Solution}{Solution}
+
+\title{HASKELL \\ \Large{第六次课后作业}}
+\author{软件62王泽宇 \qquad 学号：2016013258 \\ Email:ycdfwzy@outlook.com}
+\date{\today}
+\begin{document}
+\maketitle
+\section{第一题}
+    \begin{Solution}
+        map和(++)定义如下
+        \begin{minted}{HASKELL}
+            map :: (a -> b) -> [a] -> [b]
+            map _ [] = []                    (map.1)
+            map f (x:xs) = f x : map f xs    (map.2)
+            (++) :: [a] -> [a] -> [a]
+            [] ++ y = y                      (++.1)
+            (x:xs) ++ y = x : (xs ++ y)      (++.2)
+        \end{minted}
+        % 首先证明(++)满足结合律，即$\forall xs,ys,zs \in \{[a]\}, (xs++ys)++zs=xs++(ys++zs)$
+        % \begin{enumerate}
+        %     \item 当xs=[]时
+        %     \item 当xs=(x:xl)时
+        % \end{enumerate}
+        下面证明$\forall xs,ys,zs \in \{[a]\}, (xs++ys)++zs=xs++(ys++zs)$
+        \begin{enumerate}
+            \item 当xs=[]时
+                \begin{align}
+                    map\ f\ (xs++ys) &= map\ f\ ([]++ys) \notag \\
+                    &= map\ f\ ys  \tag{++.1} \\
+                    &= []\ ++\ map\ f\ ys \tag{++.1} \\
+                    &= map\ f\ []\ ++\ map\ f\ ys \tag{map.1} \\
+                    &= map\ f\ xs\ ++\ map\ f\ ys \notag
+                \end{align}
+            \item 当xs=(x:zs)时
+                \begin{align}
+                    map\ f\ (xs++ys) &= map\ f\ ((x:zs)++ys) \notag \\
+                    &= map\ f\ (x:zs++ys)  \tag{++.2} \\
+                    &= f\ x\ :\ map\ f\ (zs++ys) \tag{map.2} \\
+                    &= f\ x\ :\ (map\ f\ zs\ ++\ map\ f\ ys) \tag{迭代} \\
+                    &= (f\ x\ :\ map\ f\ zs)\ ++\ map\ f\ ys \tag{++.2} \\
+                    &= map\ f\ (x:zs)\ ++\ map\ f\ ys \tag{map.2} \\
+                    &= map\ f\ xs\ ++\ map\ f\ ys \notag
+                \end{align}
+        \end{enumerate}
+        综上证得$\forall xs,ys,zs \in \{[a]\}, (xs++ys)++zs=xs++(ys++zs)$。
+    \end{Solution}
+\section{第二题}
+    fst, snd, zip, unzip的定义如下
+    \begin{minted}{HASKELL}
+        fst :: (a, b) -> a
+        fst (x, _) = x                         (fst.1)
+        snd :: (a, b) -> b
+        fst (_, y) = y                         (snd.1)
+        zip :: [a] -> [b] -> [(a, b)]
+        zip [] _ = []                          (zip.1)
+        zip _ [] = []                          (zip.2)
+        zip (x:xs) (y:ys) = (x,y) : zip xs ys  (zip.3)
+        unzip :: [(a, b)] -> ([a], [b])
+        unzip [] = ([], [])                    (unzip.1)
+        unzip ((x, y) : ps) = (x : xs, y : ys) (unzip.2)
+            where (xs, ys) = unzip ps
+    \end{minted}
+    \subsection*{1.}
+    \begin{Solution}
+        下面证明对于所有有限列表ps，zip (fst (unzip ps)) (snd (unzip ps)) = ps均成立
+        \begin{enumerate}
+            \item 当ps=[]时
+                \begin{align}
+                    &\quad zip\ (fst\ (unzip\ ps))\ (snd\ (unzip\ ps)) \notag \\
+                    &= zip\ (fst\ ([],[]))\ (snd\ ([],[])) \tag{unzip.1} \\
+                    &= zip\ []\ [] \tag{fst.1, snd.1} \\
+                    &= [] \tag{zip.1} \\
+                    &= ps
+                \end{align}
+            \item 当ps=((x,y):zs)时
+                \begin{align}
+                    &\quad zip\ (fst\ (unzip\ ps))\ (snd\ (unzip\ ps)) \notag \\
+                    &= zip\ (fst\ (x:xs,\ y:ys))\ (snd\ (x:xs,\ y:ys)) \tag{unzip.2} \\
+                    &= zip\ (x:xs)\ (y:ys) \tag{fst.1,snd.1} \\
+                    &= (x,y)\ :\ zip\ xs\ ys \tag{zip.3} \\
+                    &= (x,y)\ :\ zip\ (fst\ (xs,\ ys))\ (snd\ (xs,\ ys)) \tag{fst.1,snd.1} \\
+                    &= (x,y)\ :\ zip\ (fst\ unzip\ zs)\ (snd\ unzip\ zs) \tag{unzip.2} \\
+                    &= (x,y)\ :\ zs \tag{迭代} \\
+                    &= ps \notag
+                \end{align}
+        \end{enumerate}
+        综上证得zip (fst (unzip ps)) (snd (unzip ps)) = ps。
+    \end{Solution}
+    \subsection*{2.}
+    \begin{Solution}
+        当length xs = length ys时，unzip (zip xs ys) = (xs, ys)，下面给出证明
+        \begin{enumerate}
+            \item 当length xs = length ys = 0，即xs=ys=[]
+            \begin{align}
+                unzip\ (zip\ xs\ ys) &= unzip\ (zip\ []\ []) \notag \\
+                &= unzip [] \tag{zip.1} \\
+                &= ([],\ []) \tag{unzip.1} \\
+                &= (xs,\ ys)
+            \end{align}
+            \item 当length xs = length ys = k > 0时，设xs=(x:xl),ys=(y,yl)，则length xl = length yl = k-1，由迭代知unzip (zip xl yl) = (xl, yl)
+            \begin{align}
+                unzip\ (zip\ xs\ ys) &= unzip\ (zip\ (x:xl)\ (y:yl)) \notag \\
+                &= unzip ((x,\ y):zip\ xl\ yl) \tag{zip.3} \\
+                &= (x:xl,\ y:yl) \tag{unzip.2} \\
+                &\qquad    where\ (xl, yl) = unzip\ (zip\ xl\ yl) \tag{迭代} \\
+                &= (xs, ys) \notag
+            \end{align}
+        \end{enumerate}
+        综上证得unzip (zip xs ys) = (xs, ys)
+    \end{Solution}
+\end{document}
