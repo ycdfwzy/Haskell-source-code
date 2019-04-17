@@ -51,7 +51,7 @@
                     map\ f\ (xs++ys) &= map\ f\ ((x:zs)++ys) \notag \\
                     &= map\ f\ (x:zs++ys)  \tag{++.2} \\
                     &= f\ x\ :\ map\ f\ (zs++ys) \tag{map.2} \\
-                    &= f\ x\ :\ (map\ f\ zs\ ++\ map\ f\ ys) \tag{迭代} \\
+                    &= f\ x\ :\ (map\ f\ zs\ ++\ map\ f\ ys) \tag{归纳} \\
                     &= (f\ x\ :\ map\ f\ zs)\ ++\ map\ f\ ys \tag{++.2} \\
                     &= map\ f\ (x:zs)\ ++\ map\ f\ ys \tag{map.2} \\
                     &= map\ f\ xs\ ++\ map\ f\ ys \notag
@@ -65,7 +65,7 @@
         fst :: (a, b) -> a
         fst (x, _) = x                         (fst.1)
         snd :: (a, b) -> b
-        fst (_, y) = y                         (snd.1)
+        snd (_, y) = y                         (snd.1)
         zip :: [a] -> [b] -> [(a, b)]
         zip [] _ = []                          (zip.1)
         zip _ [] = []                          (zip.2)
@@ -95,7 +95,7 @@
                     &= (x,y)\ :\ zip\ xs\ ys \tag{zip.3} \\
                     &= (x,y)\ :\ zip\ (fst\ (xs,\ ys))\ (snd\ (xs,\ ys)) \tag{fst.1,snd.1} \\
                     &= (x,y)\ :\ zip\ (fst\ unzip\ zs)\ (snd\ unzip\ zs) \tag{unzip.2} \\
-                    &= (x,y)\ :\ zs \tag{迭代} \\
+                    &= (x,y)\ :\ zs \tag{归纳} \\
                     &= ps \notag
                 \end{align}
         \end{enumerate}
@@ -117,7 +117,7 @@
                 unzip\ (zip\ xs\ ys) &= unzip\ (zip\ (x:xl)\ (y:yl)) \notag \\
                 &= unzip ((x,\ y):zip\ xl\ yl) \tag{zip.3} \\
                 &= (x:xl,\ y:yl) \tag{unzip.2} \\
-                &\qquad    where\ (xl, yl) = unzip\ (zip\ xl\ yl) \tag{迭代} \\
+                &\qquad    where\ (xl, yl) = unzip\ (zip\ xl\ yl) \tag{归纳} \\
                 &= (xs, ys) \notag
             \end{align}
         \end{enumerate}

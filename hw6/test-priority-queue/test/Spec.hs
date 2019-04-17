@@ -50,5 +50,5 @@ prop_4_findMin_simple xs = not (null xs) ==>
 prop_5_findMin_advanced :: [Integer] -> Bool
 prop_5_findMin_advanced xs = sort xs == toList (fromList xs :: BHeap Integer)
 
-prop_6_meld :: [[Integer]] -> Property
-prop_6_meld xs = not (null $ concat xs) ==> sort (concat xs) == toList (foldl meld empty_BHeap_of_Integer (map fromList xs))
+prop_6_meld :: [[Integer]] -> Bool
+prop_6_meld xs = sort (concat xs) == toList (foldl meld empty_BHeap_of_Integer (map fromList xs))
