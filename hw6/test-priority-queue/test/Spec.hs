@@ -14,7 +14,7 @@ main = do
     quickCheck prop_4_findMin_simple
     quickCheck prop_5_findMin_advanced
     quickCheck prop_6_meld
-    -- verboseCheck prop_6_meld
+    quickCheck prop_7_test_is_empty
 
     -- quickCheck or verboseCheck more properties here!
 
@@ -52,3 +52,6 @@ prop_5_findMin_advanced xs = sort xs == toList (fromList xs :: BHeap Integer)
 
 prop_6_meld :: [[Integer]] -> Bool
 prop_6_meld xs = sort (concat xs) == toList (foldl meld empty_BHeap_of_Integer (map fromList xs))
+
+prop_7_test_is_empty :: [Integer] -> Bool
+prop_7_test_is_empty xs = null xs == isEmpty (fromList xs :: BHeap Integer)
