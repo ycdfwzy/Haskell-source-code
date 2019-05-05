@@ -1,0 +1,99 @@
+%!TEX program = xelatex
+\documentclass[UTF8]{article}
+\usepackage{ctex}
+\usepackage{xfrac}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{fontspec}
+\usepackage[cache=false]{minted}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{Proof}{Proof}
+\newtheorem{Solution}{Solution}
+
+\let\t\texttt
+\newcommand{\kword}[1]{{\color{blue} \textsf{#1}}}
+\newcommand{\func}[1]{{\color{orange} \textsf{#1}}}
+\newcommand{\Nothing}{\kword{Nothing}}
+\newcommand{\Just}{\kword{Just}}
+\newcommand{\Left}{\kword{Left}}
+\newcommand{\Right}{\kword{Right}}
+\newcommand{\id}{\func{id}}
+\newcommand{\fmap}{\func{fmap}}
+\newcommand{\eq}{\t{===}}
+\newcommand{\ea}{\t{[]}}
+\newcommand{\lb}{\t{(}}
+\newcommand{\rb}{\t{)}}
+
+\title{HASKELL \\ \Large{第九次课后作业}}
+\author{软件62王泽宇 \qquad 学号：2016013258 \\ Email:ycdfwzy@outlook.com}
+\date{\today}
+\begin{document}
+\maketitle
+\section{Maybe}
+    \begin{Proof}
+        \begin{align}
+            \fmap~\id~\Nothing~&\eq~\Nothing \notag \\
+            &\eq~\id~\Nothing  \notag \\
+            \fmap~\id~\lb\Just~\t{a}\rb~&\eq~\Just~\lb\id~\t{a}\rb \notag \\
+            &\eq~\Just~\t{a} \notag \\
+            &\eq~\id~\lb\Just~\t{a}\rb \notag \\
+            \fmap~\t{f}~.~\fmap~\t{g}~\Nothing~&\eq~\fmap~\t{f}~\lb\fmap~\t{g}~\Nothing\rb \notag \\
+            &\eq~\fmap~\t{f}~\Nothing \notag \\
+            &\eq~\Nothing \notag \\
+            &\eq~\fmap~\t{(f.g)}~\Nothing \notag \\
+            \fmap~\t{f}~.~\fmap~\t{g}~\lb\Just~\t{a}\rb~&\eq~\fmap~\t{f}~\lb\fmap~\t{g}~\lb\Just~\t{a}\rb\rb \notag \\
+            &\eq~\fmap~\t{f}~\lb\Just~\t{g}~\t{a}\rb \notag \\
+            &\eq~\Just~\t{f}~(\t{g}~\t{a}) \notag \\
+            &\eq~\Just~\t{(f.g)}~\t{a} \notag \\
+            &\eq~\fmap~\t{(f.g)}~\lb\Just~\t{a}\rb \notag
+        \end{align}
+        综上证得对于\texttt{Maybe} $$\fmap~\id~\eq~\id$$ $$\fmap~\t{(f.g)~\eq~\fmap~\t{f}~.~\fmap~\t{g}}$$。
+    \end{Proof}
+\section{\texttt{[]}}
+    \begin{Proof}
+        \begin{align}
+            \fmap~\id~\ea~&\eq~\ea \notag \\
+            &\eq~\id~\ea  \notag \\
+            \fmap~\id~\t{(a:as)}~&\eq~\id~\t{a~:}~\fmap~\id~\t{as} \notag \\
+            &\eq~\t{a~:}~\id~\t{as} \tag{归纳} \\
+            &\eq~\t{a:as} \notag \\
+            &\eq~\id~\t{(a:as)} \notag \\
+            \fmap~\t{f}~.~\fmap~\t{g}~\ea~&\eq~\fmap~\t{f}~\lb\fmap~\t{g}~\ea\rb \notag \\
+            &\eq~\fmap~\t{f}~\ea \notag \\
+            &\eq~\ea \notag \\
+            &\eq~\fmap~\t{(f.g)}~\ea \notag \\
+            \fmap~\t{f}~.~\fmap~\t{g}~\t{(a:as)}~&\eq~\fmap~\t{f}~\lb\fmap~\t{g}~\t{(a:as)}\rb \notag \\
+            &\eq~\fmap~\t{f}~\lb\t{g~a~:~}\fmap~\t{g}~\t{as}\rb \notag \\
+            &\eq~\t{f~(g~a)~:~}\fmap~\t{f}~\lb\fmap~\t{g~as}\rb \notag \\
+            &\eq~\t{f.g~a~:~}\lb\fmap~\t{f}~.~\fmap~.\t{g}\rb~\t{as} \notag \\
+            &\eq~\t{f.g~a~:~}\fmap~\t{(f.g)}~\t{as} \tag{归纳} \\
+            &\eq~\fmap~\t{(f.g)}~\t{(a:as)} \notag
+        \end{align}
+        综上证得对于\texttt{[]} $$\fmap~\id~\eq~\id$$ $$\fmap~\t{(f.g)~\eq~\fmap~\t{f}~.~\fmap~\t{g}}$$。
+    \end{Proof}
+\section{Either}
+    \begin{Proof}
+        \begin{align}
+            \fmap~\id~\lb\Left~\t{c}\rb~&\eq~\Left~\t{c} \notag \\
+            &\eq~\id~\lb\Left~\t{c}\rb  \notag \\
+            \fmap~\id~\lb\Right~\t{a}\rb~&\eq~\Right~\lb\id~\t{a}\rb \notag \\
+            &\eq~\Right~\t{a} \notag \\
+            &\eq~\id~\t{(\Right~\t{a})} \notag \\
+            \fmap~\t{f}~.~\fmap~\t{g}~\lb\Left~\t{c}\rb~&\eq~\fmap~\t{f}~\lb\fmap~\t{g}~\lb\Left~\t{c}\rb\rb \notag \\
+            &\eq~\fmap~\t{f}~\lb\Left~\t{c}\rb \notag \\
+            &\eq~\Left~\t{c} \notag \\
+            &\eq~\fmap~\t{(f.g)}~\lb\Left~\t{c}\rb \notag \\
+            \fmap~\t{f}~.~\fmap~\t{g}~\lb\Right~\t{a}\rb~&\eq~\fmap~\t{f}~\lb\fmap~\t{g}~\lb\Right~\t{a}\rb\rb \notag \\
+            &\eq~\fmap~\t{f}~\lb\Right~\t{(g~a)}\rb \notag \\
+            &\eq~\Right~\lb \t{f~(g~a)} \rb \notag \\
+            &\eq~\Right~\lb \t{f.g~a} \rb \notag \\
+            &\eq~\fmap~\t{(f.g)}~\lb\Right~\t{a}\rb \notag
+        \end{align}
+        综上证得对于\texttt{Either} $$\fmap~\id~\eq~\id$$ $$\fmap~\t{(f.g)~\eq~\fmap~\t{f}~.~\fmap~\t{g}}$$。
+    \end{Proof}
+\end{document}
