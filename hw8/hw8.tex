@@ -1,0 +1,239 @@
+%! compile with xelatex
+\documentclass[11pt, a4paper]{article}
+
+% fonts: Make sure you have SimSun and SimHei installed on your system
+\usepackage{xeCJK}
+\setCJKmainfont[BoldFont=SimHei]{SimSun}
+\setCJKfamilyfont{hei}{SimHei}
+\setCJKfamilyfont{kai}{KaiTi}
+\newcommand{\hei}{\CJKfamily{hei}}
+\newcommand{\kai}{\CJKfamily{kai}}
+
+% style
+\usepackage[top=2.54cm, bottom=2.54cm, left=3.18cm, right=3.18cm]{geometry}
+\usepackage{indentfirst}
+\linespread{1.5}
+\parindent 2em
+\punctstyle{quanjiao}
+\renewcommand{\today}{\number\year 年 \number\month 月 \number\day 日}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\newtheorem{lemma}{引理}
+\usepackage[inference]{semantic} % for writing inference rules
+\setnamespace{0pt}
+
+\usepackage{enumitem}
+\setlist{nolistsep}
+
+\usepackage{empheq}
+\newcommand{\boxedeq}[1]{\begin{empheq}[box=\fbox]{align*}#1\end{empheq}}
+
+\newtheorem{Proof}{Proof}
+\newtheorem{Solution}{Solution}
+
+% A bunch of handy commands
+\let\t\texttt
+\let\emptyset\varnothing
+\let\to\rightarrow
+\let\reduce\Rightarrow
+\newcommand{\reduceM}{\Rightarrow^{*}}
+\let\defas\triangleq
+\newcommand{\Bool}{\t{Bool}}
+\newcommand{\kword}[1]{{\color{blue} \textsf{#1}}}
+\newcommand{\True}{\kword{true}}
+\newcommand{\False}{\kword{false}}
+\newcommand{\If}{\kword{if}}
+\newcommand{\Then}{\kword{then}}
+\newcommand{\Else}{\kword{else}}
+
+\title{\textbf{Haskell 第八次作业}}
+\author{软件62\quad  2016013258\quad  王泽宇\\ Email:ycdfwzy@outlook.com}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+% {\hei 注意：本次作业均为非编程题，请直接在网络学堂提交一份 PDF。前两题为必做题，这两题全部做对即得满分100分。
+% 后两题为选做题，每题25分，视回答情况酌情加分。}
+
+\section{$\lambda_\to$ 扩展}
+
+    \subsection*{1.1}
+    \begin{Solution}
+        共需要$2k+3$步，推导过程如下：
+        \begin{align}
+            &\quad \If~t_0~\Then~((\lambda x:\Bool.x)~t_0)~\Else~((\lambda x:\Bool.\If~x~\Then~\False~\Else~\True)~t_0) \notag \\
+            &\Rightarrow \If~\False~\Then~((\lambda x:\Bool.x)~t_0)~\Else~((\lambda x:\Bool.\If~x~\Then~\False~\Else~\True)~t_0) \tag{$by~t_0\Rightarrow_k~\False$} \\
+            &\Rightarrow (\lambda x:\Bool.\If~x~\Then~\False~\Else~\True)~t_0 \tag{by~E-IfFalse} \\
+            &\Rightarrow \If~t_0~\Then~\False~\Else~\True \tag{$by~\beta-reduction$} \\
+            &\Rightarrow \If~\False~\Then~\False~\Else~\True \tag{$by~t_0\Rightarrow_k~\False$} \\
+            &\Rightarrow \True \tag{by~E-IfFalse}
+        \end{align}
+        一共用了$k+1+1+k+1=2k+3$步。
+    \end{Solution}
+    \subsection*{1.2}
+    \begin{Proof}
+        \begin{align*}
+            \inference[T-If]{\inference[T-var]{x:\Bool \in \Gamma_1}{ x:\Bool \vdash x:\Bool} & \inference[T-False]{}{\emptyset \vdash \False : \Bool}}{\emptyset,x:\Bool \vdash (\If~x~\Then~\False~\Else~x):\Bool} \tag{M}
+        \end{align*}
+        其中$\Gamma_1 = x:\Bool$
+        \begin{align*}
+            \inference[T-var]{f:\Bool\rightarrow \Bool \in \Gamma_2}{f:\Bool\rightarrow \Bool\vdash f : \Bool\rightarrow \Bool} \tag{N}
+        \end{align*}
+        其中$\Gamma_2 = f:\Bool\rightarrow \Bool$
+        \begin{align*}
+            \inference[T-Abs]{\inference[T-App]{(N) ~ (M) }{\emptyset,x:\Bool,f:\Bool\rightarrow \Bool \vdash f~(\If~x~\Then~\False~\Else~x) : \Bool}}{\emptyset, f:\Bool \to \Bool \vdash \lambda x:\Bool.f~(\If~x~\Then~\False~\Else~x) : \Bool \to \Bool}
+        \end{align*}
+    \end{Proof}
+    \subsection*{1.3}
+    \begin{Solution}
+        推导过程如下啊
+        \begin{itemize}
+            \item 设$\Gamma=\emptyset, f:T_f, x:T_x, y:T_y$，那么有$$T_f\rightarrow T_x\rightarrow T_y = \Bool$$
+            \item $y$应用在$f~x$上，所以$T_f\rightarrow T_x = T_y\rightarrow A$，其中$A=\Bool$
+            \item $x$应用在$f$上，所以$T_f = T_x\rightarrow B$，其中$B=T_y\rightarrow A$
+            \item 接上面的方程组，得$T_f=T_x\rightarrow T_y\rightarrow \Bool$，所以$$\Gamma =\emptyset,~x:T_x,~y:T_y,f: T_x\rightarrow T_y\rightarrow \Bool$$
+        \end{itemize}
+    \end{Solution}
+
+\section{类型推断}
+    \subsection*{2.1}
+    \begin{Solution} 从Haskell中的定义得到
+        \begin{align*}
+            (.)~&::~(b\rightarrow c)\rightarrow (a\rightarrow b)\rightarrow a\rightarrow c \\
+            (\$)~&::~(a\rightarrow b)\rightarrow a \rightarrow b
+        \end{align*}
+        对于$(\$)_1.(\$)_2$设
+        \begin{align*}
+            \Gamma_1 &= (.)~::~(b_0\rightarrow c_0)\rightarrow (a_0\rightarrow b_0)\rightarrow a_0\rightarrow c_0 \\
+            \Gamma_2 &= (\$)_1~::~(a_1\rightarrow b_1)\rightarrow a_1 \rightarrow b_1 \\
+            \Gamma_3 &= (\$)_2~::~(a_2\rightarrow b_2)\rightarrow a_2 \rightarrow b_2
+        \end{align*}
+        推导过程如下：
+        \begin{align}
+            &\inference[CT-Var]{(.)~::~(b_0\rightarrow c_0)\rightarrow (a_0\rightarrow b_0)\rightarrow a_0\rightarrow c_0 \in \Gamma_1}{\Gamma_1 \vdash (.)~::~(b_0\rightarrow c_0)\rightarrow (a_0\rightarrow b_0)\rightarrow a_0\rightarrow c_0 \blacktriangleleft \emptyset} \tag{M.1} \\
+            &\inference[CT-Var]{(\$)_1~::~(a_1\rightarrow b_1)\rightarrow a_1 \rightarrow b_1 \in \Gamma_2}{\Gamma_2 \vdash (\$)_1~::~(a_1\rightarrow b_1)\rightarrow a_1 \rightarrow b_1 \blacktriangleleft \emptyset} \tag{M.2} \\
+            &\inference[CT-Var]{(\$)_2~::~(a_2\rightarrow b_2)\rightarrow a_2 \rightarrow b_2 \in \Gamma_3}{\Gamma_3 \vdash (\$)_2~::~(a_2\rightarrow b_2)\rightarrow a_2 \rightarrow b_2 \blacktriangleleft \emptyset} \tag{M.3} \\
+            &\inference[CT-App]{\inference[CT-App]{(M.1)~(M.2)}{\Gamma_1, \Gamma_2 \vdash (.)(\$)_1 :: (a_0\rightarrow b_0)\rightarrow a_0 \rightarrow c_0 \blacktriangleleft \Phi_1} & (M.3)}{\Gamma_1, \Gamma_2, \Gamma_3 \vdash (.) (\$)_1 (\$)_2 :: (a_2\rightarrow b_2)\rightarrow a_2 \rightarrow b_2 \blacktriangleleft \Phi} \notag
+        \end{align}
+        其中$\Phi_1=\{b_0=a_1\rightarrow b_1,~c_0=a_1\rightarrow b_1\},\Phi=\Phi_1 \cup \{a_0=a_2\rightarrow b_2,~b_0=a_2\rightarrow b_2\}$。如果把$\rightarrow$替换为逻辑蕴含，那么$(a_2\rightarrow b_2)\rightarrow a_2 \rightarrow b_2$仍然是有效命题。
+    \end{Solution}
+    \subsection*{2.2}
+    \begin{Solution}
+        对于$(.)_1\$(.)_2$设
+        \begin{align*}
+            \Gamma_1 &= (\$)~::~(a_0\rightarrow b_0)\rightarrow a_0 \rightarrow b_0 \\
+            \Gamma_2 &= (.)_1~::~(b_1\rightarrow c_1)\rightarrow (a_1\rightarrow b_1)\rightarrow a_1\rightarrow c_1 \\
+            \Gamma_3 &= (.)_2~::~(b_2\rightarrow c_2)\rightarrow (a_2\rightarrow b_2)\rightarrow a_2\rightarrow c_2
+        \end{align*}
+        推导过程如下:
+        \begin{align}
+            &\inference[CT-Var]{(\$)~::~(a_0\rightarrow b_0)\rightarrow a_0 \rightarrow b_0 \in \Gamma_1}{\Gamma_1 \vdash (\$)~::~(a_0\rightarrow b_0)\rightarrow a_0 \rightarrow b_0 \blacktriangleleft \emptyset} \tag{M.1} \\
+            &\inference[CT-Var]{(.)_1~::~(b_1\rightarrow c_1)\rightarrow (a_1\rightarrow b_1)\rightarrow a_1\rightarrow c_1 \in \Gamma_2}{\Gamma_2 \vdash (.)_1~::~(b_1\rightarrow c_1)\rightarrow (a_1\rightarrow b_1)\rightarrow a_1\rightarrow c_1 \blacktriangleleft \emptyset} \tag{M.2} \\
+            &\inference[CT-Var]{(.)_2~::~(b_2\rightarrow c_2)\rightarrow (a_2\rightarrow b_2)\rightarrow a_2\rightarrow c_2 \in \Gamma_3}{\Gamma_3 \vdash (.)_2~::~(b_2\rightarrow c_2)\rightarrow (a_2\rightarrow b_2)\rightarrow a_2\rightarrow c_2 \blacktriangleleft \emptyset} \tag{M.3} \\
+            &\inference[CT-App]{\inference[CT-App]{(M.1)(M.2)}{\Gamma_1, \Gamma_2 \vdash (\$)(.)_1~::~T_1 \blacktriangleleft \Phi_1} & (M.3)}{\Gamma_1, \Gamma_2, \Gamma_3 \vdash (\$) (.)_1 (.)_2~::~T_2  \blacktriangleleft \Phi} \notag
+        \end{align}
+        其中，$T_1=a_0\rightarrow b_0, T_2=(a_1\rightarrow b_2 \rightarrow c_2)\rightarrow a_1 \rightarrow (a_2\rightarrow b_2)\rightarrow a_2 \rightarrow c_2$，$\Phi_1=\{a_0=b_1\rightarrow c_1,~b_0=(a_1\rightarrow b_1)\rightarrow a_1\rightarrow c_1\}$,$\Phi=\Phi_1\cup \{a_0=(b_2\rightarrow c_2)\rightarrow (a_2\rightarrow b_2)\rightarrow a_2\rightarrow c_2\}$。如果把$T_2$中的$\rightarrow$替换为逻辑蕴含，那么$T_2$仍然是有效命题。
+    \end{Solution}
+    \subsection*{2.3}
+    \begin{Solution}
+        从Haskell中的定义得到
+        \begin{align*}
+            map~&::~(a\rightarrow b)\rightarrow [a]\rightarrow [b] \\
+            tail~&::~[a]\rightarrow [a]
+        \end{align*}
+        对于\t{\textbackslash c f -> if c then map f else tail}，设
+        \begin{align*}
+            \Gamma_1 &= map~::~(a\rightarrow b)\rightarrow [a]\rightarrow [b] \\
+            \Gamma_2 &= tail~::~[d]\rightarrow [d] \\
+            \Gamma_3 &= c~::~T_c \\
+            \Gamma_4 &= c~::~T_f
+        \end{align*}
+        推导过程如下
+        \begin{align}
+            &\inference[CT-Var]{map~::~(a\rightarrow b)\rightarrow [a] \rightarrow [b] \in \Gamma_1}{\Gamma_1 \vdash map~::~(a\rightarrow b)\rightarrow [a]\rightarrow [b] \blacktriangleleft \emptyset} \tag{M.1} \\
+            &\inference[CT-Var]{tail~::~[c]\rightarrow [c] \in \Gamma_2}{\Gamma_2 \vdash tail~::~[c]\rightarrow [c] \blacktriangleleft \emptyset} \tag{M.2} \\
+            &\inference[CT-Var]{c~::~T_c \in \Gamma_3}{\Gamma_3 \vdash c~::~T_c \blacktriangleleft \emptyset} \tag{M.3} \\
+            &\inference[CT-Var]{f~::~T_f \in \Gamma_4}{\Gamma_4 \vdash f~::~T_f \blacktriangleleft \emptyset} \tag{M.4} \\
+            &\inference[CT-Abs]{\inference[CT-ITE]{\inference[CT-App]{(M.1)(M.4)}{\Gamma_1, \Gamma_4 \vdash map~f~::~[a]\rightarrow [b] \blacktriangleleft \Phi_2} & (M.2)(M.3)}{\Gamma_1, \Gamma_2, \Gamma_3, \Gamma_4 \vdash \If~c~\Then~map~f~\Else~tail~::~[a] \blacktriangleleft \Phi_1}}{\Gamma_1, \Gamma_2 \vdash \textbackslash c~f\rightarrow \If~c~\Then~map~f~\Else~tail~::~[c]\rightarrow [c] \blacktriangleleft \Phi_1} \notag
+        \end{align}
+        其中，$\Phi_2=\{T_f=a\rightarrow b\},\Phi_1=\Phi_2\cup \{T_c=\Bool,~[a]\rightarrow [b]=[c] \rightarrow [c]\}$
+    \end{Solution}
+
+\section{扩展系统的元性质判定（选做题）}
+    \subsection*{3.1}
+    \begin{Solution}
+        引理1不正确，考虑$(\lambda x:\Bool.x)~\False$，第一步应用E-App1规约，得到$\t{foo}~\False$，第二应用E-Foo2，得到$\True~\False$。如果第一步应用E-$\beta$规约，得到$\False$。显然两种规约方式得到的结果不同，规约具有不确定性。\\
+        引理2正确。\\
+        引理3不正确，反例同样取$(\lambda x:\Bool.x)~\False$。
+    \end{Solution}
+    \subsection*{3.2}
+    \begin{Solution}
+        引理1正确，\\
+        引理2不正确。考虑$((\lambda x.x)(\lambda x.x))\True$，由于没E-App1，所以无法进行规约；这也不是一个value。\\
+        引理3正确。
+    \end{Solution}
+    \subsection*{3.3}
+    \begin{Solution}
+        引理1正确，\\
+        引理2正确。\\
+        引理3不正确。考虑$(\lambda x:Bool.(\lambda y:Bool.y))~\False$，按照T-FunnyApp，这是一个$\Bool$类型的表达式，如果进行一步规约，得到$\lambda y:Bool.y$，是一个$\Bool\rightarrow \Bool$类型的表达式，类型没有得到保持。
+    \end{Solution}
+    \subsection*{3.4}
+    \begin{Solution}
+        引理1正确，\\
+        引理2正确。\\
+        引理3正确。考虑$t=(\lambda x:\Bool.(\lambda y:\Bool.\True))\False$，根据原来的规则，容易得到$t:\Bool \rightarrow \Bool$。在用$\beta$规约，可以得到$t\Rightarrow \lambda y:\Bool.\True = t_1$，根据新规则T-FunnyAbs，$t_1:Bool$，$t$和$t_1$的类型不同，所以违反了引理3。
+    \end{Solution}
+    \subsection*{3.5}
+    \begin{Solution}
+        引理1正确，\\
+        引理2不正确。考虑$\True~\False$，根据T-FunnyApp'规则，他是一个$\Bool$类型的，但是这不是一个value，也不可以进行规约。\\
+        引理3正确。
+    \end{Solution}
+
+\section{System F 的元性质证明（选做题）}
+    \subsection*{引理4~F-progress}
+    \begin{Proof}
+        下面证明在F中新增的Term满足引理4。
+        \begin{itemize}
+            \item $s=\lambda X.t$。由于F系统中定义了$\lambda X.t$是一个value，所以$s=\lambda X.t$满足引理4。
+            \item $s=t[T]$。如果$t$不是一个value，那么$t\Rightarrow t'$，根据E-TApp，$s=t[T]\Rightarrow t'[T]$。如果$t$是value，即$t=\lambda X.t$，根据E-T$\beta$规则，$s=t[T]=(\lambda X.t)[T]\Rightarrow t[X:=T]$。
+        \end{itemize}
+        综上，F系统满足引理4。
+    \end{Proof}
+    \subsection*{引理5~F-preservation}
+    \begin{Proof}
+        下面证明在F中新增的Term满足引理5。
+        \begin{itemize}
+            \item $s=\lambda X.t$，设$t:T$，那么$s:\forall X.T$。由于$s$不可规约，所以不违反引理5。
+            \item $s=t[T]$，按$t$的不同，分为以下两种情况：
+            \begin{itemize}
+                \item $t=\lambda X.t_1$，设其中$t_1:T_1$，由T-TAbs知$t=\lambda X.t_1:\forall X.T_1$。根据E-T$\beta$规约，$s=(\lambda X.t_1)[T]\Rightarrow t_1[X:=T]$，再由T-TApp类型规则知$t_1[X:=T]:T_1[X:=T]$。
+                \item $t=t_1[T_1]$，即$t$可以继续进行规约，设$t\Rightarrow t'$。用归纳法可知$t,t'$具有相同的类型，假设为$\forall X.T'$，所以$s$的类型为$T'[X:=T]$(T-TApp)。现在应用E-TApp，$s=t[T]\Rightarrow t'[T]$，同样由T-TApp得$t'[T]:T'[X:=T]$。所以$s=t[T]$与$t'[T]$具有相同的类型。
+            \end{itemize}
+        \end{itemize}
+        综上，F系统满足引理5。
+    \end{Proof}
+
+% {\kai 提示：本题工作量较大，但只要按部就班地开展证明也不难。根据证明的完整性评分。}
+
+% 与 $\lambda_\to$ 类似，$F$ 也具有 progress 和 preservation 的元性质：
+
+% \begin{lemma}
+%     ($F$-progress) For any term $t$ and type $T$, if $\vdash t : T$,
+%     then either $t$ is a value, or $t \reduce t'$ for some term $t'$.
+% \end{lemma}
+
+% \begin{lemma}
+%     ($F$-preservation) If $\vdash t:T$ and $t \reduce t'$, then $\vdash t':T$.
+% \end{lemma}
+
+% 请先阅读 \textit{Types and Programming Languages} 定理 9.3.5 ($\lambda_\to$-progress) 以及引理 9.3.4 的证明，还有定理 9.3.9 ($\lambda_\to$-preservation) 的证明，仿照该方法证明 $F$ 满足上述两个元性质。尽你所能给出所有必要的证明细节。注：你可以采用不同于讲义中的符号系统，但请在证明之前给出所有要用到的定义和规则。
+
+\end{document}
