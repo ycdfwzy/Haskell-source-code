@@ -622,5 +622,50 @@ test_complex_08_apply_type = assertEqual (tRaw_08_apply_type) (EvalType.evalType
 test_complex_09_apply_value = assertEqual (tRaw_09_apply_value) (EvalValue.evalValue tRaw_09_apply)
 test_complex_09_apply_type = assertEqual (tRaw_09_apply_type) (EvalType.evalType tRaw_09_apply)
 
+-- my test
+-- (\x -> \y -> \z -> x + y + z) 1 2 3
+my_apply_value0 = Program [] $ EApply (EApply (EApply (ELambda ("x", TInt)
+                                                (ELambda ("y", TInt)
+                                                  (ELambda ("z", TInt)
+                                                  (EAdd (EVar "x") (EAdd (EVar "y") (EVar "z")))))) (EIntLit 1)) (EIntLit 2)) (EIntLit 3)
+tRaw_my_apply_value0 = RInt 6
+test_my_test0 = assertEqual (tRaw_my_apply_value0) (EvalValue.evalValue my_apply_value0)
+
+-- let x=1 in let y=2 in x+y
+my_apply_value1 = Program [] $ ELet ("x", (EIntLit 1)) (ELet ("y", (EIntLit 2)) (EAdd (EVar "x") (EVar "y")))
+tRaw_my_apply_value1 = RInt 3
+test_my_test1 = assertEqual (tRaw_my_apply_value1) (EvalValue.evalValue my_apply_value1)
+
+my_church0 =
+  Program [] $
+
+  ELet ("zero", ELambda ("f", TArrow TInt TInt)
+                (ELambda ("x", TInt) (EVar "x"))) $
+  ELet ("succ", ELambda ("n", TArrow (TArrow TInt TInt) (TArrow TInt TInt))
+                (ELambda ("f", TArrow TInt TInt)
+                  (ELambda ("x", TInt)
+                    (EApply (EVar "f")
+                      (callFun (EVar "n") [EVar "f", EVar "x"]))))) $
+  -- plus = \a b f x -> a f (b f x)
+  ELet ("plus", ELambda ("a", TArrow (TArrow TInt TInt) (TArrow TInt TInt))
+                (ELambda ("b", TArrow (TArrow TInt TInt) (TArrow TInt TInt))
+                  (ELambda ("f", TArrow TInt TInt)
+                    (ELambda ("x", TInt)
+                      (ELet ("af", EApply (EVar "a") (EVar "f"))
+                        (ELet ("bf", EApply (EVar "b") (EVar "f"))
+                          (EApply (EVar "af") (EApply (EVar "bf") (EVar "x"))))))))) $
+  -- mult = \a b f -> b (a f)
+  ELet ("mult", ELambda ("a", TArrow (TArrow TInt TInt) (TArrow TInt TInt))
+                (ELambda ("b", TArrow (TArrow TInt TInt) (TArrow TInt TInt))
+                  (ELambda ("f", TArrow TInt TInt)
+                    (EApply (EVar "b") (EApply (EVar "a") (EVar "f")))))) $
+
+  ELet ("f", ELambda ("x", TInt) (EAdd (EVar "x") (EIntLit 1))) $
+  ELet ("one", EApply (EVar "succ") (EVar "zero")) $
+  ELet ("two", EApply (EVar "succ") (EVar "one")) $
+  callFun (EVar "two") [EVar "f", EIntLit 0]
+my_church_value0 = RInt 2
+test_my_church0 = assertEqual (my_church_value0) (EvalValue.evalValue my_church0)
+
 ---------- Real HTF test cases end ----------
 

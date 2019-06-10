@@ -42,11 +42,6 @@ isSameType e1 e2 = do
   et1 <- eval e1
   et2 <- eval e2
   sameType et1 et2 >> return et1
-  -- case et1 of
-  --   TInt -> isInt e2 >> return TInt
-  --   TBool -> isBool e2 >> return TBool
-  --   TChar ->  isChar e2 >> return TChar
-  --   _ -> lift Nothing
 
 evalOrd :: Expr -> Expr -> ContextState Type
 evalOrd e1 e2 = do
@@ -64,12 +59,6 @@ evalVar mp s = do
   case ((Map.!?) mp s) of
     Just x -> return x
     _ -> lift Nothing
-
-evalLetRec :: String -> String -> Type -> Expr -> Type -> Expr -> ContextState Type
-evalLetRec = undefined
-
-evalApply :: Expr -> Expr -> ContextState Type
-evalApply = undefined
 
 eval :: Expr -> ContextState Type
 eval (EBoolLit _) = return TBool
