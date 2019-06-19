@@ -6,7 +6,7 @@ import System.Timeout(timeout)
 import AST
 import EvalValue
 import EvalType
-
+import SimpleParser
 
 -- TODO in test report, Failure, not expected timeout 2019-03-06
 addTimeout test = timeout (3*10^6) test >>= assertJustVerbose "3 seconds timeout exceeded"
@@ -667,5 +667,7 @@ my_church0 =
 my_church_value0 = RInt 2
 test_my_church0 = assertEqual (my_church_value0) (EvalValue.evalValue my_church0)
 
+test_parser0 = let (_, Just x)=runParser parseProgram (show tRaw_02_church0) in assertEqual (tRaw_02_church0_value) (EvalValue.evalValue x)
+test_parser1 = let (_, Just x)=runParser parseProgram (show tRaw_01_lcm) in assertEqual (tRaw_01_lcm_value) (EvalValue.evalValue x)
 ---------- Real HTF test cases end ----------
 
