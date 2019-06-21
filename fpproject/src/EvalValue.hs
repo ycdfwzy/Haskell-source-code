@@ -141,3 +141,14 @@ evalValue p = case evalProgram p of
   Just (VInt i) -> RInt i
   Just (VChar c) -> RChar c
   _ -> RInvalid
+
+evalProgram2 :: Map.Map String Value -> Program -> Maybe Value
+evalProgram2 ctx (Program adts body) = evalStateT (eval body) $
+  Context { vars=ctx }
+
+evalValue2 :: Map.Map String Value -> Program -> Result
+evalValue2 ctx p = case evalProgram2 ctx p of
+  Just (VBool b) -> RBool b
+  Just (VInt i) -> RInt i
+  Just (VChar c) -> RChar c
+  _ -> RInvalid

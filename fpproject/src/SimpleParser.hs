@@ -340,7 +340,18 @@ parseExpr = do
            parseExprLambda   <|>
            parseExprApply    <|>
            parseExprLetRec
+    -- parseMaybeSpace
     return res
+
+-- EBind String Expr
+parseBind :: Parser (String, Expr)
+parseBind = do
+    parseString "EBind"
+    parseSpace
+    s <- parseVarName
+    parseSpace
+    e <- parseExpr
+    return $ (s, e)
 
 parseProgram :: Parser Program
 parseProgram = do
@@ -349,4 +360,14 @@ parseProgram = do
     parseString "[]"
     parseMaybeSpace
     e <- parseExpr
+    parseMaybeSpace
     return $ Program [] e
+
+-- :t program
+parseGetType :: Parser Program
+parseGetType = do
+    parseString ":t"
+    parseSpace
+    p <- parseProgram
+    parseMaybeSpace
+    return $ p
