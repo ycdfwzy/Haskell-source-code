@@ -113,8 +113,7 @@ eval _ = undefined
 
 
 evalType :: Program -> Maybe Type
-evalType (Program adts body) = evalStateT (eval body) $
-  Context { vars=Map.empty } -- 可以用某种方式定义上下文，用于记录变量绑定状态
+evalType = evalType2 Map.empty
 
 evalType2 :: Map.Map String Type -> Program -> Maybe Type
 evalType2 ctx (Program adts body) = evalStateT (eval body) $

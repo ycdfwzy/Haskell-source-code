@@ -131,16 +131,11 @@ eval (EApply e1 e2) = do
 eval _ = undefined
 
 evalProgram :: Program -> Maybe Value
-evalProgram (Program adts body) = evalStateT (eval body) $
-  Context { vars=Map.empty } -- 可以用某种方式定义上下文，用于记录变量绑定状态
+evalProgram = evalProgram2 Map.empty
 
 
 evalValue :: Program -> Result
-evalValue p = case evalProgram p of
-  Just (VBool b) -> RBool b
-  Just (VInt i) -> RInt i
-  Just (VChar c) -> RChar c
-  _ -> RInvalid
+evalValue = evalValue2 Map.empty
 
 evalProgram2 :: Map.Map String Value -> Program -> Maybe Value
 evalProgram2 ctx (Program adts body) = evalStateT (eval body) $

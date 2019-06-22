@@ -45,7 +45,7 @@ myEval input = do
                                 _            -> case runParser parseProgram input of
                                                     ([], Just p) -> return (show $ EValue.evalValue2 (ctxV global) p)
                                                     (s, Just _)  -> return $ "Unknown token \"" ++ s ++ "\"!"
-                                                    _            -> return $ input ++ "\nFailed! Please check your grammar!"
+                                                    _            -> return $ "Failed! Please check your grammar!"
 
 loop :: Global -> IO()
 loop global = do
